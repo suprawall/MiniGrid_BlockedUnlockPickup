@@ -1,9 +1,8 @@
 from collections import defaultdict
-from minigrid.wrappers import OneHotPartialObsWrapper
 #from projet import serialize_state
 from training import preprocess_observation, representation
+from Minigrid import minigrid
 
-import minigrid
 import gymnasium as gym
 import pickle
 import time

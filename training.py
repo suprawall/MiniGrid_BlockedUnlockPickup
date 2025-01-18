@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import random
 import time
 import pickle
+from Minigrid import minigrid
 
 
 def representation(obs):
@@ -146,7 +147,7 @@ def epsilon_greedy_policy(state, Q, epsilon, action_space):
         return max(Q[state], key=Q[state].get)
 
 
-def training_1_seed_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, training_seed, amplification, save_data = False, plot_courbes = False):
+def training_1_seed_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, training_seed, amplification, save_data = False, plot = False):
     """execute une sequence d'entrainement pour une seed complète: on s'arrête quand on est sur que 
     le modèle sait aller à la box à tous les coups 
 
@@ -214,12 +215,15 @@ def training_1_seed_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, train
     env.close()
 
     print(pourcent_action_count(action_counts, nb_steps))
+    if(plot):
+        plot_courbes(len(rewards_per_episode), rewards_per_episode)
     
     if save_data:
         tab_seed = save_Q_and_seed(Q, training_seed)
         return Q, tab_seed
+    return Q
 
-def training_1_seed(env, Q, episodes, alpha, gamma, epsilon, max_steps, training_seed, amplification, save_data = False, plot_courbes = False):
+def training_1_seed(env, Q, episodes, alpha, gamma, epsilon, max_steps, training_seed, amplification, save_data = False, plot = False):
     """execute une sequence d'entrainement pour une seed complète: on s'arrête quand on est sur que 
     le modèle sait aller à la box à tous les coups 
 
@@ -227,7 +231,7 @@ def training_1_seed(env, Q, episodes, alpha, gamma, epsilon, max_steps, training
     """
     action_space = env.action_space
     
-    momentum = 8        #Nombre de fois qu'on va faire encore 100 épisodes lorsqu'on atteint un moment ou le training est "débloqué"
+    momentum = 10        #Nombre de fois qu'on va faire encore 100 épisodes lorsqu'on atteint un moment ou le training est "débloqué"
     t1 = time.time()
     batch_reward = [0 for _ in range(100)]
     rewards_per_episode = []
@@ -252,9 +256,7 @@ def training_1_seed(env, Q, episodes, alpha, gamma, epsilon, max_steps, training
             
             action = epsilon_greedy_policy(state, Q, epsilon, action_space)
             next_observation, reward, done, truncated, agent_pos = env.step(action)
-            """if agent_pos not in visited_cells:
-                visited_cells.add(agent_pos)
-                reward += 0.09                      #On veut pas totalement annuler le coût du déplacement parce que....... à méditer"""
+
             nb_steps += 1
             action_counts[action] += 1
             
@@ -292,13 +294,16 @@ def training_1_seed(env, Q, episodes, alpha, gamma, epsilon, max_steps, training
     env.close()
 
     print(pourcent_action_count(action_counts, nb_steps))
+    if(plot):
+        plot_courbes(len(rewards_per_episode), rewards_per_episode)
     
     if save_data:
         tab_seed = save_Q_and_seed(Q, training_seed)
         return Q, tab_seed
+    return Q
    
 
-def random_training_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, amplification, save_data = False, plot_courbes = False):
+def random_training_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, amplification, save_data = False):
     """execute une sequence d'entrainement pour une seed complète: on s'arrête quand on est sur que 
     le modèle sait aller à la box à tous les coups 
 
@@ -371,7 +376,7 @@ def random_training_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, ampli
         save_Q_and_seed(Q, path="./Q-table/q_table_v2.0_final.pkl")
         return Q
     
-def random_training(env, Q, episodes, alpha, gamma, epsilon, max_steps, amplification, save_data = False, plot_courbes = False):
+def random_training(env, Q, episodes, alpha, gamma, epsilon, max_steps, amplification, save_data = False):
     """execute une sequence d'entrainement pour une seed complète: on s'arrête quand on est sur que 
     le modèle sait aller à la box à tous les coups 
 
