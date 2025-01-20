@@ -5,7 +5,7 @@ import random
 import pickle
 import time
 
-from Minigrid import minigrid
+from Minigrid import *
 from collections import defaultdict
 from training import training_1_seed, training_1_seed_nv, random_training, random_training_nv
 from training_sarsa import sarsa_1_seed, sarsa_1_seed_nv, execute_game_from_table, execute_game_from_table_nv
