@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pathlib
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 CWD = pathlib.Path(__file__).absolute().parent
 
@@ -35,4 +35,4 @@ def get_description():
     return long_description
 
 
-setup(name="minigrid", version=get_version(), long_description=get_description())
+setup(name="minigrid", version=get_version(), packages=find_packages(), long_description=get_description())
