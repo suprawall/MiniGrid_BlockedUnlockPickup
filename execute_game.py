@@ -15,12 +15,16 @@ def serialize_state(observation):
     return (direction, tuple(image))
 
 
-def execute_game_nv(max_steps, path_qtable, execute_seed):
+def execute_game_nv(max_steps, path_qtable, execute_seed=None):
     env = gym.make("MiniGrid-BlockedUnlockPickup-v0", render_mode="human")
     #env = OneHotPartialObsWrapper(env)
     action_space = env.action_space
 
-    observation, info = env.reset(seed=execute_seed)
+    if execute_seed is None:
+        observation, info = env.reset()
+    else:
+        observation, info = env.reset(seed=execute_seed)
+        
     state = representation(observation)
     print(state)
     

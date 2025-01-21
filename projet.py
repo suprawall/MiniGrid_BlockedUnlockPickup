@@ -16,6 +16,8 @@ LOAD = False
 INIT_TRAINING = True
 SARSA = False
 
+EXECUTE_GAME = True
+
 # Paramètres d'apprentissage
 alpha = 0.1  
 gamma = 0.99  
@@ -28,10 +30,17 @@ amplification = 10   #facteur d'amplification pour la formule de reward (plus il
 pretrained_seed_path = "./Q-table/seed_nouveau.pkl"
 
 
-def load_data(action_space, final=False):
+def load_data(action_space, final=False, show=False):
     with open(pretrained_seed_path, "rb") as file:
             tab_seed = pickle.load(file)
-            
+    
+    if show:
+        path_qtable = "./Q-table/q_table_v2.0_finisBIEN.pkl"
+        with open(path_qtable, "rb") as file:
+                Q_loaded = pickle.load(file)
+        Q = defaultdict(lambda: {a: 0 for a in range(action_space.n - 1)}, Q_loaded)
+        return tab_seed, Q
+        
     l = len(tab_seed)
     path_qtable = f"./Q-table/q_table_v2.0_{l}.pkl"
     if LOAD:
@@ -55,6 +64,13 @@ env = gym.make("MiniGrid-BlockedUnlockPickup-v0")
 action_space = env.action_space
 
 
+if EXECUTE_GAME:
+    tab_seed, Q = load_data(action_space, show=True)
+    print(f"longueur de la Q-table: {len(Q)}")
+    print(f"===== lancement d'un jeu sur une seed aléatoire jamais vu =====")
+    execute_game_nv(100, "./Q-table/q_table_v2.0_finisBIEN.pkl")
+    
+    
 if not SARSA:
     if INIT_TRAINING:
         tab_seed, Q = load_data(action_space)
