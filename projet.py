@@ -11,20 +11,20 @@ from training import training_1_seed, training_1_seed_nv, random_training, rando
 from training_sarsa import sarsa_1_seed, sarsa_1_seed_nv, execute_game_from_table, execute_game_from_table_nv
 from execute_game import execute_game, execute_game_nv
 
-TRAINING = False
+TRAINING = True
 SAVE = False
 LOAD = False
 INIT_TRAINING = True
 SARSA = False
 
-EXECUTE_GAME = True
+EXECUTE_GAME = False
 
 # Paramètres d'apprentissage
 alpha = 0.1  
 gamma = 0.99  
 epsilon = 0.1  
-episodes = 5000
-max_steps = 500  
+episodes = 1000
+max_steps = 1000  
 
 amplification = 10   #facteur d'amplification pour la formule de reward (plus il est grand plus la diminution du nombre de pas est privilégié)
 
@@ -101,7 +101,7 @@ if TRAINING:
             tab_seed, Q = load_data(action_space, final=True)
             print(f"======= Début de l'entrainement aléatoire ========")
             print(f"longueur initial de Q: {len(Q)}")
-            Q = random_training_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, amplification, save_data=SAVE)
+            Q = random_training_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, amplification, save_data=SAVE, plot=False)
             
     else:
         tab_seed, Q = load_data(action_space)
@@ -112,4 +112,8 @@ if TRAINING:
         print(f"======= Début de l'entrainement avec SARSA sur la seed {seed} ========")
         
         Q = sarsa_1_seed_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, seed, amplification, save_data=SAVE, plot=True)
+        
+        tab_seed, Q = load_data(action_space)
+        Q = training_1_seed(env, Q, episodes, alpha, gamma, epsilon, max_steps, seed, amplification, save_data=SAVE, plot=True)
+        execute_game_from_table(max_steps, Q, seed)
     

@@ -64,11 +64,8 @@ def preprocess_observation(obs):
     """
     Supprime la dimension de couleur dans l'observation.
     """
-    # Extraire la grille de l'observation
     image = obs['image']
-    # Supprimer la dimension couleur (index 1) et garder type (0) et état (2)
     obs_without_color = image[:, :, [0, 2]]
-    # Mettre à jour l'observation avec la grille pré-traitée
     obs['image'] = obs_without_color
     return obs
 
@@ -106,12 +103,21 @@ def save_Q_and_seed(Q, seed=None, path=None):
         print("Q-table et seed sauvegardés")
         return tab_seed
     
-def plot_courbes(episodes, rewards_per_episode):
+def plot_courbes(episodes, rewards_per_episode, done_per_episode):
     plt.figure(figsize=(10, 5))
     plt.plot(range(episodes), rewards_per_episode, label="Cumul des récompenses")
     plt.xlabel("Épisode")
     plt.ylabel("Cumul des récompenses")
     plt.title("Cumul des récompenses par épisode")
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+    
+    plt.figure(figsize=(10, 5))
+    plt.plot(range(len(done_per_episode)), done_per_episode, label="evolution nombre de done par tranche de 100 episodes")
+    plt.xlabel("Tranche")
+    plt.ylabel("Nombre de Done")
+    plt.title("evolution nombre de done par tranche de 100 episodes")
     plt.legend()
     plt.tight_layout()
     plt.show()
@@ -162,6 +168,7 @@ def training_1_seed_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, train
     nb_steps = 0
     action_counts = {a: 0 for a in range(action_space.n)}
     done_count = 0
+    done_per_episode = []
     epsilon = 0.15
     for episode in range(episodes):
         if(momentum == 0):
@@ -209,6 +216,7 @@ def training_1_seed_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, train
             print(f"Episode {episode}, Q-table size: {len(Q)}, nombre de done: {done_count} temps: {t2-t1}")
             print(f"Max Reward: {max_reward} sur l'épisode {episode - 100 + indice}")
             print("-----------------------------------------------------------")
+            done_per_episode.append(done_count)
             if(done_count >= 90):
                 momentum -= 1
             
@@ -216,7 +224,7 @@ def training_1_seed_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, train
 
     print(pourcent_action_count(action_counts, nb_steps))
     if(plot):
-        plot_courbes(len(rewards_per_episode), rewards_per_episode)
+        plot_courbes(len(rewards_per_episode), rewards_per_episode, done_per_episode)
     
     if save_data:
         tab_seed = save_Q_and_seed(Q, training_seed)
@@ -238,6 +246,7 @@ def training_1_seed(env, Q, episodes, alpha, gamma, epsilon, max_steps, training
     nb_steps = 0
     action_counts = {a: 0 for a in range(action_space.n)}
     done_count = 0
+    done_per_episode = []
     for episode in range(episodes):
         if(momentum == 0):
             break
@@ -288,6 +297,7 @@ def training_1_seed(env, Q, episodes, alpha, gamma, epsilon, max_steps, training
             print(f"Episode {episode}, Q-table size: {len(Q)}, nombre de done: {done_count} temps: {t2-t1}")
             print(f"Max Reward: {max_reward} sur l'épisode {episode - 100 + indice}")
             print("-----------------------------------------------------------")
+            done_per_episode.append(done_count)
             if(done_count >= 90):
                 momentum -= 1
             
@@ -295,7 +305,7 @@ def training_1_seed(env, Q, episodes, alpha, gamma, epsilon, max_steps, training
 
     print(pourcent_action_count(action_counts, nb_steps))
     if(plot):
-        plot_courbes(len(rewards_per_episode), rewards_per_episode)
+        plot_courbes(len(rewards_per_episode), rewards_per_episode, done_per_episode)
     
     if save_data:
         tab_seed = save_Q_and_seed(Q, training_seed)
@@ -303,7 +313,7 @@ def training_1_seed(env, Q, episodes, alpha, gamma, epsilon, max_steps, training
     return Q
    
 
-def random_training_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, amplification, save_data = False):
+def random_training_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, amplification, save_data = False, plot=False):
     """execute une sequence d'entrainement pour une seed complète: on s'arrête quand on est sur que 
     le modèle sait aller à la box à tous les coups 
 
@@ -318,6 +328,7 @@ def random_training_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, ampli
     nb_steps = 0
     action_counts = {a: 0 for a in range(action_space.n)}
     done_count = 0
+    done_per_episode = []
     epsilon = 0.05
     for episode in range(episodes):
         #visited_cells = set()
@@ -367,10 +378,14 @@ def random_training_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, ampli
             print(f"Episode {episode}, Q-table size: {len(Q)}, nombre de done: {done_count} temps: {t2-t1}")
             print(f"Max Reward: {max_reward} sur l'épisode {episode - 100 + indice}")
             print("-----------------------------------------------------------")
+            done_per_episode.append(done_count)
             
     env.close()
 
     print(pourcent_action_count(action_counts, nb_steps))
+    print(f"Winrate moyen: {sum(done_per_episode) / len(done_per_episode)}")
+    if plot:
+        plot_courbes(episodes, rewards_per_episode, done_per_episode)
     
     if save_data:
         save_Q_and_seed(Q, path="./Q-table/q_table_v2.0_final.pkl")
@@ -391,6 +406,7 @@ def random_training(env, Q, episodes, alpha, gamma, epsilon, max_steps, amplific
     nb_steps = 0
     action_counts = {a: 0 for a in range(action_space.n)}
     done_count = 0
+    done_per_episode = []
     for episode in range(episodes):
         #visited_cells = set()
         observation, info = env.reset()
@@ -438,6 +454,7 @@ def random_training(env, Q, episodes, alpha, gamma, epsilon, max_steps, amplific
             print(f"Episode {episode}, Q-table size: {len(Q)}, nombre de done: {done_count} temps: {t2-t1}")
             print(f"Max Reward: {max_reward} sur l'épisode {episode - 100 + indice}")
             print("-----------------------------------------------------------")
+            done_per_episode.append(done_count)
             
     env.close()
 

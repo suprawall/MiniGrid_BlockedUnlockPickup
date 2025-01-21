@@ -23,7 +23,7 @@ def sarsa_1_seed(env, Q, episodes, alpha, gamma, epsilon, max_steps, training_se
     nb_steps = 0
     action_counts = {a: 0 for a in range(action_space.n)}
     done_count = 0
-
+    done_per_episode = []
     for episode in range(episodes):
         if momentum == 0:
             break
@@ -76,6 +76,7 @@ def sarsa_1_seed(env, Q, episodes, alpha, gamma, epsilon, max_steps, training_se
             print(f"Episode {episode}, table size: {len(Q)}, nombre de done: {done_count} temps: {t2 - t1}")
             print(f"Max Reward: {max_reward} sur l'episode {episode - 100 + indice}")
             print("-----------------------------------------------------------")
+            done_per_episode.append(done_count)
             if done_count >= 90:
                 momentum -= 1
 
@@ -83,7 +84,7 @@ def sarsa_1_seed(env, Q, episodes, alpha, gamma, epsilon, max_steps, training_se
 
     print(pourcent_action_count(action_counts, nb_steps))
     if(plot):
-        plot_courbes(len(rewards_per_episode), rewards_per_episode)
+        plot_courbes(len(rewards_per_episode), rewards_per_episode, done_per_episode)
         
     print(f"======= Execution d'un jeu sur la seed {training_seed} =======")
     execute_game_from_table(max_steps, Q, training_seed)
@@ -104,7 +105,7 @@ def sarsa_1_seed_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, training
     nb_steps = 0
     action_counts = {a: 0 for a in range(action_space.n)}
     done_count = 0
-
+    done_per_episode = []
     for episode in range(episodes):
         if momentum == 0:
             break
@@ -159,6 +160,7 @@ def sarsa_1_seed_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, training
             print(f"Episode {episode}, table size: {len(Q)}, nombre de done: {done_count} temps: {t2 - t1}")
             print(f"Max Reward: {max_reward} sur l'episode {episode - 100 + indice}")
             print("-----------------------------------------------------------")
+            done_per_episode.append(done_count)
             if done_count >= 90:
                 momentum -= 1
 
@@ -166,7 +168,7 @@ def sarsa_1_seed_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, training
 
     print(pourcent_action_count(action_counts, nb_steps))
     if(plot):
-        plot_courbes(len(rewards_per_episode), rewards_per_episode)
+        plot_courbes(len(rewards_per_episode), rewards_per_episode, done_per_episode)
     
     print(f"======= Execution d'un jeu sur la seed {training_seed} =======")
     execute_game_from_table_nv(max_steps, Q, training_seed)

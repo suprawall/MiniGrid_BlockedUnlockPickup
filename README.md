@@ -1,6 +1,6 @@
 Pour les entrainements, le code va automatiquement lancer le jeu sur la seed utilisée pour l'entrainement
 
-Pour executer un entrainement simple(Q-learning):
+Pour executer un entrainement simple(Q-learning avec ancien et nouveau cerveau):
 
 TRAINING = True
 SAVE = False
@@ -12,15 +12,16 @@ EXECUTE_GAME = False
 
 =============================
 
-Pour executer un entrainement simple(Sarsa):
+Pour executer un entrainement simple(Sarsa ET Q-learning):
 
 TRAINING = True
 SAVE = False
 LOAD = False
 INIT_TRAINING = True
-SARSA = False
+SARSA = True
 
 EXECUTE_GAME = False
+
 
 =============================
 
