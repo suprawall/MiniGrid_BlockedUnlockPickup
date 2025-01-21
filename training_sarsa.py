@@ -123,7 +123,6 @@ def sarsa_1_seed_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, training
             epsilon = 0.1
 
         for step in range(max_steps):
-            # Interaction avec l'environnement
             next_observation, reward, done, truncated, agent_pos = env.step(action)
             nb_steps += 1
             action_counts[action] += 1
@@ -136,12 +135,10 @@ def sarsa_1_seed_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, training
             next_state = representation(next_observation)
             next_action = epsilon_greedy_policy(next_state, Q, epsilon, action_space)
 
-            # Mettre a jour la Q-valeur (SARSA update)
             Q[state][action] += alpha * (
                 reward + gamma * Q[next_state][next_action] - Q[state][action]
             )
 
-            # Passer a l'etat et action suivants
             state = next_state
             action = next_action
 

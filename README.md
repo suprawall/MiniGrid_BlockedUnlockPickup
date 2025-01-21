@@ -1,3 +1,6 @@
+la Q-table final est: "q_table_v2.0_finisBIEN.pkl", c'est utilise pour l'argument EXECUTE_GAME qui lance une partie sur un envirionnement jamais vu par l'agent durant son entrainement.
+
+
 Pour les entrainements, le code va automatiquement lancer le jeu sur la seed utilisée pour l'entrainement
 
 Pour executer un entrainement simple(Q-learning avec ancien et nouveau cerveau):

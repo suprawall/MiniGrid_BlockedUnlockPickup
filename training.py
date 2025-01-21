@@ -153,7 +153,7 @@ def epsilon_greedy_policy(state, Q, epsilon, action_space):
         return max(Q[state], key=Q[state].get)
 
 
-def training_1_seed_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, training_seed, amplification, save_data = False, plot = False):
+def training_1_seed(env, Q, episodes, alpha, gamma, epsilon, max_steps, training_seed, amplification, nv_cerveau=True, save_data = False, plot = False):
     """execute une sequence d'entrainement pour une seed complète: on s'arrête quand on est sur que 
     le modèle sait aller à la box à tous les coups 
 
@@ -175,7 +175,11 @@ def training_1_seed_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, train
             break
         #visited_cells = set()
         observation, info = env.reset(seed=training_seed)
-        state = representation(observation)
+        if nv_cerveau:
+            state = representation(observation)
+        else:
+            observation = preprocess_observation(observation)
+            state = serialize_state(observation)
         rewards_episode = 0
         if episode % 100 == 1:
             batch_reward = [0 for _ in range(100)]
@@ -188,7 +192,10 @@ def training_1_seed_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, train
             
             action = epsilon_greedy_policy(state, Q, epsilon, action_space)
             next_observation, reward, done, truncated, agent_pos = env.step(action)
-            next_state = representation(next_observation)
+            if nv_cerveau:
+                next_state = representation(next_observation)
+            else:
+                next_state = serialize_state(next_observation)
             nb_steps += 1
             action_counts[action] += 1
             
@@ -231,89 +238,9 @@ def training_1_seed_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, train
         return Q, tab_seed
     return Q
 
-def training_1_seed(env, Q, episodes, alpha, gamma, epsilon, max_steps, training_seed, amplification, save_data = False, plot = False):
-    """execute une sequence d'entrainement pour une seed complète: on s'arrête quand on est sur que 
-    le modèle sait aller à la box à tous les coups 
-
-        plot_courbes (bool, optional): est ce qu'on veut afficher les courbes ou pas. Defaults to False.
-    """
-    action_space = env.action_space
-    
-    momentum = 10        #Nombre de fois qu'on va faire encore 100 épisodes lorsqu'on atteint un moment ou le training est "débloqué"
-    t1 = time.time()
-    batch_reward = [0 for _ in range(100)]
-    rewards_per_episode = []
-    nb_steps = 0
-    action_counts = {a: 0 for a in range(action_space.n)}
-    done_count = 0
-    done_per_episode = []
-    for episode in range(episodes):
-        if(momentum == 0):
-            break
-        #visited_cells = set()
-        observation, info = env.reset(seed=training_seed)
-        observation = preprocess_observation(observation)
-        state = serialize_state(observation)
-        rewards_episode = 0
-        if episode % 100 == 1:
-            batch_reward = [0 for _ in range(100)]
-            t1 = time.time()
-            done_count = 0
-            epsilon = 0.1
-
-        for step in range(max_steps):
-            
-            action = epsilon_greedy_policy(state, Q, epsilon, action_space)
-            next_observation, reward, done, truncated, agent_pos = env.step(action)
-
-            nb_steps += 1
-            action_counts[action] += 1
-            
-            if done:
-                done_count += 1
-            if done_count > 10:
-                epsilon = 0.01
-                
-            next_state = serialize_state(next_observation)
-
-            # Mettre à jour la Q-valeur
-            Q[state][action] += alpha * (
-                reward + gamma * max(Q[next_state].values()) - Q[state][action]
-            )
-            
-            # Passer à l'état suivant
-            state = next_state
-            batch_reward[episode % 100] += reward
-            rewards_episode += reward
-            
-            if done or truncated:
-                break
-        
-        rewards_per_episode.append(rewards_episode)
-        if episode % 100 == 0 and episode != 0:
-            t2 = time.time()
-            max_reward = max(batch_reward)
-            indice = batch_reward.index(max_reward)
-            print(f"Episode {episode}, Q-table size: {len(Q)}, nombre de done: {done_count} temps: {t2-t1}")
-            print(f"Max Reward: {max_reward} sur l'épisode {episode - 100 + indice}")
-            print("-----------------------------------------------------------")
-            done_per_episode.append(done_count)
-            if(done_count >= 90):
-                momentum -= 1
-            
-    env.close()
-
-    print(pourcent_action_count(action_counts, nb_steps))
-    if(plot):
-        plot_courbes(len(rewards_per_episode), rewards_per_episode, done_per_episode)
-    
-    if save_data:
-        tab_seed = save_Q_and_seed(Q, training_seed)
-        return Q, tab_seed
-    return Q
    
 
-def random_training_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, amplification, save_data = False, plot=False):
+def random_training(env, Q, episodes, alpha, gamma, epsilon, max_steps, amplification, nv_cerveau=True, save_data = False, plot=False):
     """execute une sequence d'entrainement pour une seed complète: on s'arrête quand on est sur que 
     le modèle sait aller à la box à tous les coups 
 
@@ -333,7 +260,11 @@ def random_training_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, ampli
     for episode in range(episodes):
         #visited_cells = set()
         observation, info = env.reset()
-        state = representation(observation)
+        if nv_cerveau:
+            state = representation(observation)
+        else:
+            observation = preprocess_observation(observation)
+            state = serialize_state(observation)
         rewards_episode = 0
         if episode % 100 == 1:
             """if(done_count > 90):
@@ -354,9 +285,11 @@ def random_training_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, ampli
             
             if done:
                 done_count += 1
-                
-            next_state = representation(next_observation)
-
+            
+            if nv_cerveau:   
+                next_state = representation(next_observation)
+            else:
+                next_state = serialize_state(next_observation)
             # Mettre à jour la Q-valeur
             Q[state][action] += alpha * (
                 reward + gamma * max(Q[next_state].values()) - Q[state][action]
@@ -391,75 +324,3 @@ def random_training_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, ampli
         save_Q_and_seed(Q, path="./Q-table/q_table_v2.0_final.pkl")
         return Q
     
-def random_training(env, Q, episodes, alpha, gamma, epsilon, max_steps, amplification, save_data = False):
-    """execute une sequence d'entrainement pour une seed complète: on s'arrête quand on est sur que 
-    le modèle sait aller à la box à tous les coups 
-
-        plot_courbes (bool, optional): est ce qu'on veut afficher les courbes ou pas. Defaults to False.
-    """
-    action_space = env.action_space
-    print(f"max steps: {max_steps}")
-    
-    t1 = time.time()
-    batch_reward = [0 for _ in range(100)]
-    rewards_per_episode = []
-    nb_steps = 0
-    action_counts = {a: 0 for a in range(action_space.n)}
-    done_count = 0
-    done_per_episode = []
-    for episode in range(episodes):
-        #visited_cells = set()
-        observation, info = env.reset()
-        observation = preprocess_observation(observation)
-        state = serialize_state(observation)
-        rewards_episode = 0
-        if episode % 100 == 1:
-            batch_reward = [0 for _ in range(100)]
-            t1 = time.time()
-            done_count = 0
-
-        for step in range(max_steps):
-            
-            action = epsilon_greedy_policy(state, Q, epsilon, action_space)
-            next_observation, reward, done, truncated, agent_pos = env.step(action)
-            """if agent_pos not in visited_cells:
-                visited_cells.add(agent_pos)
-                reward += 0.09                      #On veut pas totalement annuler le coût du déplacement parce que....... à méditer"""
-            nb_steps += 1
-            action_counts[action] += 1
-            
-            if done:
-                done_count += 1
-                
-            next_state = serialize_state(next_observation)
-
-            # Mettre à jour la Q-valeur
-            Q[state][action] += alpha * (
-                reward + gamma * max(Q[next_state].values()) - Q[state][action]
-            )
-            
-            # Passer à l'état suivant
-            state = next_state
-            batch_reward[episode % 100] += reward
-            rewards_episode += reward
-            
-            if done or truncated:
-                break
-        
-        rewards_per_episode.append(rewards_episode)
-        if episode % 100 == 0 and episode != 0:
-            t2 = time.time()
-            max_reward = max(batch_reward)
-            indice = batch_reward.index(max_reward)
-            print(f"Episode {episode}, Q-table size: {len(Q)}, nombre de done: {done_count} temps: {t2-t1}")
-            print(f"Max Reward: {max_reward} sur l'épisode {episode - 100 + indice}")
-            print("-----------------------------------------------------------")
-            done_per_episode.append(done_count)
-            
-    env.close()
-
-    print(pourcent_action_count(action_counts, nb_steps))
-    
-    if save_data:
-        tab_seed = save_Q_and_seed(Q)
-        return Q, tab_seed
