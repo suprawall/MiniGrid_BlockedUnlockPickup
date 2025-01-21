@@ -11,6 +11,7 @@ from training import training_1_seed, training_1_seed_nv, random_training, rando
 from training_sarsa import sarsa_1_seed, sarsa_1_seed_nv, execute_game_from_table, execute_game_from_table_nv
 from execute_game import execute_game, execute_game_nv
 
+TRAINING = False
 SAVE = False
 LOAD = False
 INIT_TRAINING = True
@@ -70,45 +71,45 @@ if EXECUTE_GAME:
     print(f"===== lancement d'un jeu sur une seed aléatoire jamais vu =====")
     execute_game_nv(100, "./Q-table/q_table_v2.0_finisBIEN.pkl")
     
-    
-if not SARSA:
-    if INIT_TRAINING:
+if TRAINING:
+    if not SARSA:
+        if INIT_TRAINING:
+            tab_seed, Q = load_data(action_space)
+            seed = random.randint(0,10000)
+            while seed in tab_seed:
+                seed = random.randint(0,10000)
+
+            print(f"longueur initiale de la Q-table: {len(Q)}")
+            print(f"======= Début de l'entrainement avec Q-learning sur la seed {seed} ========")
+            if SAVE:
+                Q, tab_seed = training_1_seed_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, seed, amplification, save_data=SAVE, plot=False)
+                
+                #print(f"======= Execution d'un jeu sur la seed {seed} =======")
+                #l = len(tab_seed)
+                #execute_game_nv(max_steps, f"./Q-table/q_table_v2.0_{l}.pkl", seed)
+                #print(f"Le modèle a été entrainé sur {l} environnements différents, les voici: {tab_seed}")
+            else:
+                Q = training_1_seed(env, Q, episodes, alpha, gamma, epsilon, max_steps, seed, amplification, save_data=SAVE, plot=True)
+                execute_game_from_table(max_steps, Q, seed)
+                
+                tab_seed, Q = load_data(action_space, final=True)
+                print(f"longueur initiale de la Q-table: {len(Q)}")
+                print(f"======= Début de l'entrainement avec Q-learning sur la seed {seed} ========")
+                Q = training_1_seed_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, seed, amplification, save_data=SAVE, plot=True)
+                execute_game_from_table_nv(max_steps, Q, seed)        
+        else:
+            tab_seed, Q = load_data(action_space, final=True)
+            print(f"======= Début de l'entrainement aléatoire ========")
+            print(f"longueur initial de Q: {len(Q)}")
+            Q = random_training_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, amplification, save_data=SAVE)
+            
+    else:
         tab_seed, Q = load_data(action_space)
         seed = random.randint(0,10000)
         while seed in tab_seed:
             seed = random.randint(0,10000)
-
         print(f"longueur initiale de la Q-table: {len(Q)}")
-        print(f"======= Début de l'entrainement avec Q-learning sur la seed {seed} ========")
-        if SAVE:
-            Q, tab_seed = training_1_seed_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, seed, amplification, save_data=SAVE, plot=False)
-            
-            #print(f"======= Execution d'un jeu sur la seed {seed} =======")
-            #l = len(tab_seed)
-            #execute_game_nv(max_steps, f"./Q-table/q_table_v2.0_{l}.pkl", seed)
-            #print(f"Le modèle a été entrainé sur {l} environnements différents, les voici: {tab_seed}")
-        else:
-            Q = training_1_seed(env, Q, episodes, alpha, gamma, epsilon, max_steps, seed, amplification, save_data=SAVE, plot=True)
-            execute_game_from_table(max_steps, Q, seed)
-            
-            tab_seed, Q = load_data(action_space, final=True)
-            print(f"longueur initiale de la Q-table: {len(Q)}")
-            print(f"======= Début de l'entrainement avec Q-learning sur la seed {seed} ========")
-            Q = training_1_seed_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, seed, amplification, save_data=SAVE, plot=True)
-            execute_game_from_table_nv(max_steps, Q, seed)        
-    else:
-        tab_seed, Q = load_data(action_space, final=True)
-        print(f"======= Début de l'entrainement aléatoire ========")
-        print(f"longueur initial de Q: {len(Q)}")
-        Q = random_training_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, amplification, save_data=SAVE)
+        print(f"======= Début de l'entrainement avec SARSA sur la seed {seed} ========")
         
-else:
-    tab_seed, Q = load_data(action_space)
-    seed = random.randint(0,10000)
-    while seed in tab_seed:
-        seed = random.randint(0,10000)
-    print(f"longueur initiale de la Q-table: {len(Q)}")
-    print(f"======= Début de l'entrainement avec SARSA sur la seed {seed} ========")
-    
-    Q = sarsa_1_seed_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, seed, amplification, save_data=SAVE, plot=True)
+        Q = sarsa_1_seed_nv(env, Q, episodes, alpha, gamma, epsilon, max_steps, seed, amplification, save_data=SAVE, plot=True)
     
